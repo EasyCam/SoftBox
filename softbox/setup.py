@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='softbox',
-      version='0.0.1',
+      version='0.0.2',
       description='a tool for photographer to use Screen as SoftBox.',
       author='cycleuser',
       author_email='cycleuser@cycleuser.org',
