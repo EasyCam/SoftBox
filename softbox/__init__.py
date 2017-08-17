@@ -150,6 +150,10 @@ def main():
     ex = SoftBox()
     sys.exit(app.exec_())
 
+def begin():
+    app = QApplication(sys.argv)
+    ex = SoftBox()
+    sys.exit(app.exec_())
 
 
 

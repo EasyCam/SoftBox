@@ -21,6 +21,6 @@ After the installation step above, SoftBox now becomes available in Python. And 
 
 ```Bash
 import sys
-import geopython as gp
-sys.exit(gp.begin())
+import softbox as sb
+sys.exit(sb.begin())
 ```
