@@ -13,12 +13,12 @@ import time
 class ColorSlider(toga.Box):
     """A custom widget that combines a slider with its label and direct input."""
     def __init__(self, label, value=255, min_value=0, max_value=255, on_change=None):
-        super().__init__(style=Pack(direction=ROW))
+        super().__init__(style=Pack(direction=ROW, padding=(0, 0, 2, 0)))
         
         # Create label
         self.label_widget = toga.Label(
             label,
-            style=Pack(width=20, padding=(5, 5))
+            style=Pack(width=15, padding=(0, 2))
         )
         
         # Create slider with correct parameter names and callbacks
@@ -37,7 +37,7 @@ class ColorSlider(toga.Box):
             value=value,
             step=1,
             on_change=self._spinbox_changed,
-            style=Pack(width=50)  # Reduced width
+            style=Pack(width=40)  # Reduced width
         )
         
         # Add widgets to layout
@@ -76,12 +76,12 @@ class ColorSlider(toga.Box):
 class SpeedSlider(toga.Box):
     """A custom widget for controlling effect speed with direct input."""
     def __init__(self, label="Speed", min_value=50, max_value=1000, value=500, on_change=None):
-        super().__init__(style=Pack(direction=ROW))
+        super().__init__(style=Pack(direction=ROW, padding=(0, 0, 2, 0)))
         
         # Create label
         self.label_widget = toga.Label(
             f"{label}:",
-            style=Pack(width=45, padding=(5, 5))
+            style=Pack(width=36, padding=(0, 2))
         )
         
         # Create slider with correct parameter names
@@ -100,7 +100,7 @@ class SpeedSlider(toga.Box):
             value=value,
             step=10,
             on_change=self._spinbox_changed,
-            style=Pack(width=60)  # Reduced width
+            style=Pack(width=45)  # Reduced width
         )
         
         # Add widgets to layout
@@ -288,7 +288,7 @@ class ToggleButton(toga.Button):
         super().__init__(
             text="▼",
             on_press=self._on_press,
-            style=Pack(width=24, height=24)
+            style=Pack(width=20, height=20, padding=0)
         )
         self.is_open = True
         self.on_toggle_callback = on_toggle
@@ -311,7 +311,7 @@ class SoftBoxApp(toga.App):
         self.main_window = toga.MainWindow(title="SoftBox - Advanced Light Controller")
         
         # Main container with vertical layout
-        main_box = toga.Box(style=Pack(direction=COLUMN, padding=5))
+        main_box = toga.Box(style=Pack(direction=COLUMN, padding=2))
         
         # Color display - This will expand as window resizes
         self.color_display = ColorDisplay()
@@ -319,162 +319,162 @@ class SoftBoxApp(toga.App):
         color_display_container.add(self.color_display)
         
         # Toggle button container (stays small)
-        toggle_btn_container = toga.Box(style=Pack(direction=ROW, alignment='center', padding=(5, 0)))
+        toggle_btn_container = toga.Box(style=Pack(direction=ROW, alignment='center', padding=(2, 0)))
         self.toggle_button = ToggleButton(text="▼", on_toggle=self.toggle_controls_visibility)
         toggle_btn_container.add(self.toggle_button)
         
-        # Controls container - does not expand vertically
+        # Controls container with fixed max height
         self.controls_container = toga.Box(style=Pack(direction=COLUMN))
         
-        # Create a row layout for controls
-        controls_box = toga.Box(style=Pack(direction=ROW))
+        # Create controls area with more compact layout
+        controls_box = toga.Box(style=Pack(direction=COLUMN, padding=(2, 2)))
         
-        # Left side - RGB Color Control
-        rgb_container = toga.Box(style=Pack(direction=COLUMN, padding=(5, 5), flex=1))
+        # Top row containing both RGB controls and effect selection
+        top_row = toga.Box(style=Pack(direction=ROW, padding=0))
         
-        rgb_label = toga.Label("RGB Color Control", style=Pack(padding=(0, 0, 5, 0)))
+        # RGB Controls (left side)
+        rgb_controls = toga.Box(style=Pack(direction=COLUMN, padding=0, flex=1))
         
-        # Initialize color
-        self.color = rgb(255, 255, 255)
-        
-        # Create sliders
+        # Create compact RGB sliders group
+        rgb_sliders = toga.Box(style=Pack(direction=COLUMN, padding=0))
         self.slider_r = ColorSlider("R", 255, on_change=self.update_color)
         self.slider_g = ColorSlider("G", 255, on_change=self.update_color)
         self.slider_b = ColorSlider("B", 255, on_change=self.update_color)
         
-        # Add RGB controls
-        rgb_container.add(rgb_label)
-        rgb_container.add(self.slider_r)
-        rgb_container.add(self.slider_g)
-        rgb_container.add(self.slider_b)
+        rgb_sliders.add(self.slider_r)
+        rgb_sliders.add(self.slider_g)
+        rgb_sliders.add(self.slider_b)
+        rgb_controls.add(rgb_sliders)
         
-        # Standard presets
-        presets_box = toga.Box(style=Pack(direction=COLUMN, padding=(5, 0)))
-        standard_presets_label = toga.Label("Standard Presets:", style=Pack(padding=(5, 0)))
-        presets_box.add(standard_presets_label)
-        
-        # Create standard preset buttons in a grid-like layout
-        standard_presets = [
-            ("White", rgb(255, 255, 255)),
-            ("Red", rgb(255, 0, 0)),
-            ("Green", rgb(0, 255, 0)),
-            ("Blue", rgb(0, 0, 255)),
-            ("Warm", rgb(255, 180, 100)),
-            ("Cool", rgb(180, 200, 255))
-        ]
-        
-        std_presets_row1 = toga.Box(style=Pack(direction=ROW))
-        std_presets_row2 = toga.Box(style=Pack(direction=ROW))
-        
-        for i, (name, color) in enumerate(standard_presets):
-            btn = toga.Button(name, on_press=self.create_preset_handler(color), 
-                              style=Pack(flex=1, padding=2, height=28))
-            
-            # Add to appropriate row
-            if i < 3:  
-                std_presets_row1.add(btn)
-            else:
-                std_presets_row2.add(btn)
-        
-        presets_box.add(std_presets_row1)
-        presets_box.add(std_presets_row2)
-        
-        # Designer presets
-        designer_presets_label = toga.Label("Designer Colors:", style=Pack(padding=(5, 0)))
-        presets_box.add(designer_presets_label)
-        
-        designer_presets = [
-            ("Prussian", rgb(0, 49, 83)),
-            ("Hermès", rgb(255, 88, 0)),
-            ("LV Brown", rgb(101, 67, 33)),
-            ("Tiffany", rgb(0, 175, 152)),
-            ("Louboutin", rgb(224, 23, 58))
-        ]
-        
-        designer_presets_row1 = toga.Box(style=Pack(direction=ROW))
-        designer_presets_row2 = toga.Box(style=Pack(direction=ROW))
-        
-        for i, (name, color) in enumerate(designer_presets):
-            btn = toga.Button(name, on_press=self.create_preset_handler(color),
-                              style=Pack(flex=1, padding=2, height=28))
-            
-            # Add to appropriate row
-            if i < 3:
-                designer_presets_row1.add(btn)
-            else:
-                designer_presets_row2.add(btn)
-                if i == 4:  # Last button
-                    # Add an empty button to maintain layout symmetry with top row
-                    empty_btn = toga.Box(style=Pack(flex=1))
-                    designer_presets_row2.add(empty_btn)
-        
-        presets_box.add(designer_presets_row1)
-        presets_box.add(designer_presets_row2)
-        
-        # Add presets to RGB container
-        rgb_container.add(presets_box)
-        
-        # Right side - Light Effects
-        effects_container = toga.Box(style=Pack(direction=COLUMN, padding=(5, 5), flex=1))
-        
-        effects_label = toga.Label("Light Effects", style=Pack(padding=(0, 0, 5, 0)))
-        effects_container.add(effects_label)
+        # Effects Controls (right side)
+        effects_controls = toga.Box(style=Pack(direction=COLUMN, padding=0, flex=1))
         
         # Effect selection
-        effect_selection_box = toga.Box(style=Pack(direction=ROW, padding=(0, 0, 5, 0)))
-        effect_label = toga.Label("Effect:", style=Pack(width=45))
+        effect_selection = toga.Box(style=Pack(direction=ROW, padding=(0, 0, 2, 0)))
+        effect_label = toga.Label("Effect:", style=Pack(width=36, padding=(0, 2)))
         
-        # Create selection with correct parameter name
         effect_items = ["None", "Strobe", "Police", "Ambulance", "Neon", "Sun", "Moon", "Custom"]
         self.effect_combo = toga.Selection(
             items=effect_items,
             on_change=self.change_effect,
-            style=Pack(flex=1, height=30)
+            style=Pack(flex=1, height=25)
         )
         
-        effect_selection_box.add(effect_label)
-        effect_selection_box.add(self.effect_combo)
-        effects_container.add(effect_selection_box)
+        effect_selection.add(effect_label)
+        effect_selection.add(self.effect_combo)
+        effects_controls.add(effect_selection)
         
         # Speed control
         self.speed_slider = SpeedSlider("Speed", 50, 1000, 500, on_change=self.update_speed)
-        effects_container.add(self.speed_slider)
+        effects_controls.add(self.speed_slider)
         
-        # Effect quick buttons in a grid-like layout
-        effect_buttons_label = toga.Label("Quick Effects:", style=Pack(padding=(5, 0, 5, 0)))
-        effects_container.add(effect_buttons_label)
+        # Add both control sections to the top row
+        top_row.add(rgb_controls)
+        top_row.add(effects_controls)
+        controls_box.add(top_row)
         
-        effect_buttons = [
-            ("Strobe", "Strobe"), ("Police", "Police"), 
-            ("Ambulance", "Ambulance"), ("Neon", "Neon"),
-            ("Sun", "Sun"), ("Moon", "Moon")
+        # Bottom row with all buttons in a more compact layout
+        buttons_box = toga.Box(style=Pack(direction=ROW, padding=(2, 0, 0, 0)))
+        
+        # Left side - Standard colors
+        std_colors = toga.Box(style=Pack(direction=COLUMN, padding=0, flex=1))
+        
+        # Standard color buttons - 3x2 grid
+        std_presets = [
+            ("White", rgb(255, 255, 255)), ("Red", rgb(255, 0, 0)), ("Green", rgb(0, 255, 0)),
+            ("Blue", rgb(0, 0, 255)), ("Warm", rgb(255, 180, 100)), ("Cool", rgb(180, 200, 255))
         ]
         
-        effect_buttons_row1 = toga.Box(style=Pack(direction=ROW))
-        effect_buttons_row2 = toga.Box(style=Pack(direction=ROW))
-        effect_buttons_row3 = toga.Box(style=Pack(direction=ROW))
+        std_grid = toga.Box(style=Pack(direction=COLUMN, padding=0))
+        std_row1 = toga.Box(style=Pack(direction=ROW, padding=0))
+        std_row2 = toga.Box(style=Pack(direction=ROW, padding=0))
+        
+        for i, (name, color) in enumerate(std_presets):
+            btn = toga.Button(
+                name, 
+                on_press=self.create_preset_handler(color),
+                style=Pack(flex=1, padding=1, height=22, width=50)
+            )
+            if i < 3:
+                std_row1.add(btn)
+            else:
+                std_row2.add(btn)
+        
+        std_grid.add(std_row1)
+        std_grid.add(std_row2)
+        std_colors.add(std_grid)
+        
+        # Middle - Designer colors
+        designer_colors = toga.Box(style=Pack(direction=COLUMN, padding=0, flex=1))
+        
+        # Designer color buttons - More compact grid layout
+        designer_presets = [
+            ("Prussian", rgb(0, 49, 83)), ("Hermès", rgb(255, 88, 0)), 
+            ("LV Brown", rgb(101, 67, 33)), ("Tiffany", rgb(0, 175, 152)),
+            ("Louboutin", rgb(224, 23, 58))
+        ]
+        
+        designer_grid = toga.Box(style=Pack(direction=COLUMN, padding=0))
+        designer_row1 = toga.Box(style=Pack(direction=ROW, padding=0))
+        designer_row2 = toga.Box(style=Pack(direction=ROW, padding=0))
+        
+        for i, (name, color) in enumerate(designer_presets):
+            btn = toga.Button(
+                name,
+                on_press=self.create_preset_handler(color),
+                style=Pack(flex=1, padding=1, height=22, width=50)
+            )
+            if i < 3:
+                designer_row1.add(btn)
+            elif i < 5:
+                designer_row2.add(btn)
+        
+        # Add one empty space to balance the row
+        if len(designer_presets) % 3 != 0:
+            empty_space = toga.Box(style=Pack(flex=1))
+            designer_row2.add(empty_space)
+            
+        designer_grid.add(designer_row1)
+        designer_grid.add(designer_row2)
+        designer_colors.add(designer_grid)
+        
+        # Right side - Effect buttons
+        effect_buttons_container = toga.Box(style=Pack(direction=COLUMN, padding=0, flex=1))
+        
+        # Effect buttons - Compact grid layout
+        effect_buttons = [
+            ("Strobe", "Strobe"), ("Police", "Police"), ("Ambulance", "Ambulance"),
+            ("Neon", "Neon"), ("Sun", "Sun"), ("Moon", "Moon")
+        ]
+        
+        effects_grid = toga.Box(style=Pack(direction=COLUMN, padding=0))
+        effects_row1 = toga.Box(style=Pack(direction=ROW, padding=0))
+        effects_row2 = toga.Box(style=Pack(direction=ROW, padding=0))
         
         for i, (name, effect) in enumerate(effect_buttons):
-            btn = toga.Button(name, on_press=self.create_effect_handler(effect), 
-                              style=Pack(flex=1, padding=2, height=28))
-            
-            # Add to appropriate row
-            if i < 2:
-                effect_buttons_row1.add(btn)
-            elif i < 4:
-                effect_buttons_row2.add(btn)
+            btn = toga.Button(
+                name,
+                on_press=self.create_effect_handler(effect),
+                style=Pack(flex=1, padding=1, height=22, width=50)
+            )
+            if i < 3:
+                effects_row1.add(btn)
             else:
-                effect_buttons_row3.add(btn)
+                effects_row2.add(btn)
         
-        effects_container.add(effect_buttons_row1)
-        effects_container.add(effect_buttons_row2)
-        effects_container.add(effect_buttons_row3)
+        effects_grid.add(effects_row1)
+        effects_grid.add(effects_row2)
+        effect_buttons_container.add(effects_grid)
         
-        # Add containers to the controls box
-        controls_box.add(rgb_container)
-        controls_box.add(effects_container)
+        # Add all button sections to the bottom row
+        buttons_box.add(std_colors)
+        buttons_box.add(designer_colors)
+        buttons_box.add(effect_buttons_container)
         
-        # Add the controls box to the controls container
+        # Add bottom row to controls
+        controls_box.add(buttons_box)
+        
+        # Add controls box to the container
         self.controls_container.add(controls_box)
         
         # Build the main UI
@@ -484,7 +484,7 @@ class SoftBoxApp(toga.App):
         
         # Set up the main window
         self.main_window.content = main_box
-        self.main_window.size = (650, 450)
+        self.main_window.size = (650, 400)  # Made overall window smaller
         self.main_window.show()
         
         # Set initial color
