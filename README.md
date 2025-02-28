@@ -39,5 +39,6 @@ briefcase dev
 ### Run the Toga Version
 
 ```Bash
-
+cd softbox_toga
+briefcase dev
 ```
