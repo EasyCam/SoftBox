@@ -3,6 +3,7 @@
 
 SoftBox is a tool for photographer to use screen as a light box. This is also an extreme exercise of PySide6.
 
+#### Version: 1.0
 
 ## Installation
 
