@@ -1,3 +1,11 @@
+"""
+A tool for photographer to use screen as a light box.
+"""
+import importlib.metadata
+import sys
+"""
+A tool for photographer to use screen as a light box.
+"""
 import sys
 import re
 import random
@@ -525,13 +533,19 @@ class SoftBox(QMainWindow):
 
 
 def main():
-    app = QApplication(sys.argv)
-    app.setStyle('Fusion')  # Use Fusion style for a modern look
-    window = SoftBox()
-    window.show()
-    return app.exec()
+    app_module = sys.modules["__main__"].__package__
+    # Retrieve the app's metadata
+    metadata = importlib.metadata.metadata(app_module)
 
+    QApplication.setApplicationName(metadata["Formal-Name"])
+
+    app = QApplication(sys.argv)
+    main_window = SoftBox()
+    main_window.show()  # 显示主窗口
+    sys.exit(app.exec())
 
 if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-    sys.exit(main())
+    app = QApplication(sys.argv)
+    main_window = SoftBox()
+    main_window.show()  # 显示主窗口
+    sys.exit(app.exec())

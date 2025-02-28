@@ -10,11 +10,6 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QColor, QPalette, QIcon, QFont
 from PySide6.QtCore import Qt, QTimer, Signal, QPropertyAnimation, QEasingCurve, QSize
-import matplotlib
-matplotlib.use('QtAgg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-
 
 class ColorSlider(QWidget):
     """A custom widget that combines a slider with its label and direct input."""
