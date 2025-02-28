@@ -42,3 +42,46 @@ briefcase dev
 cd softbox_toga
 briefcase dev
 ```
+
+## Use Installer
+
+Download the innstaller from https://pan.baidu.com/s/15dEeSmhkoaaOo9rGbtMkNw?pwd=349d with the code: 349d 
+
+### Windows MSI Installer
+
+Double click the `Soft Box.msi` file to install.
+
+### ZIP Runner
+
+Unzip the `Soft Box.zip` file to get the `Soft Box.exe` file.
+
+### Android AAB Installer
+
+Use the `Soft Box.aab` file to install on Android.
+
+## Usage
+
+The Start Screen is as follows:
+![](./images/01_Start.png)
+
+Click the button to change the color of the light box:
+![](./images/02_ClickToChangeColor.png)
+
+The light box can be scrolled to change the effects of the light box:
+![](./images/03_LightEffects.png)
+
+The light box can be scrolled:
+![](./images/04_ClickToScroll.png)
+
+The control parts scrolled is like:
+![](./images/05_Scrolled.png)
+
+The Android GUI is as follows:
+![](./images/AndroidGUI.png)
+
+## License
+
+This project is licensed under the GPLv3 License - see the [LICENSE.md](LICENSE.md) file for details.
+
+
+
