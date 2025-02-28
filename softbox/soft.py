@@ -6,10 +6,10 @@ from PySide6.QtWidgets import (
     QMainWindow, QMenu, QVBoxLayout, QHBoxLayout, 
     QSizePolicy, QMessageBox, QSlider, QLabel,
     QComboBox, QGroupBox, QGridLayout, QTabWidget,
-    QSplitter
+    QSplitter, QSpinBox, QToolButton
 )
-from PySide6.QtGui import QColor, QPalette
-from PySide6.QtCore import Qt, QTimer, Signal, QPropertyAnimation, QEasingCurve
+from PySide6.QtGui import QColor, QPalette, QIcon, QFont
+from PySide6.QtCore import Qt, QTimer, Signal, QPropertyAnimation, QEasingCurve, QSize
 import matplotlib
 matplotlib.use('QtAgg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -17,58 +17,120 @@ from matplotlib.figure import Figure
 
 
 class ColorSlider(QWidget):
-    """A custom widget that combines a slider with its label."""
+    """A custom widget that combines a slider with its label and direct input."""
     def __init__(self, label, value=255, parent=None):
         super().__init__(parent)
         self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         
-        self.label = QLabel(f"{label} {value:03d}")
-        self.label.setMinimumWidth(50)
+        self.label = QLabel(f"{label}")
+        self.label.setMinimumWidth(20)
         
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setRange(0, 255)
         self.slider.setValue(value)
         
+        # Add spin box for direct input
+        self.spin_box = QSpinBox()
+        self.spin_box.setRange(0, 255)
+        self.spin_box.setValue(value)
+        self.spin_box.setFixedWidth(60)
+        
+        # Connect signals
+        self.slider.valueChanged.connect(self._slider_changed)
+        self.spin_box.valueChanged.connect(self._spinbox_changed)
+        
+        # Add widgets to layout
         self.layout.addWidget(self.label)
-        self.layout.addWidget(self.slider)
+        self.layout.addWidget(self.slider, 1)  # Give slider stretch factor
+        self.layout.addWidget(self.spin_box)
         
     def value(self):
         return self.slider.value()
     
     def setValue(self, value):
+        # Prevent signal loops
+        self.slider.blockSignals(True)
+        self.spin_box.blockSignals(True)
+        
         self.slider.setValue(value)
+        self.spin_box.setValue(value)
+        
+        self.slider.blockSignals(False)
+        self.spin_box.blockSignals(False)
+    
+    def _slider_changed(self, value):
+        self.spin_box.blockSignals(True)
+        self.spin_box.setValue(value)
+        self.spin_box.blockSignals(False)
+    
+    def _spinbox_changed(self, value):
+        self.slider.blockSignals(True)
+        self.slider.setValue(value)
+        self.slider.blockSignals(False)
         
     def update_label(self):
-        self.label.setText(f"{self.label.text()[0]} {self.slider.value():03d}")
+        # This method is kept for backward compatibility
+        pass
 
 
 class SpeedSlider(QWidget):
-    """A custom widget for controlling effect speed."""
+    """A custom widget for controlling effect speed with direct input."""
     def __init__(self, label="Speed", min_value=50, max_value=1000, value=500, parent=None):
         super().__init__(parent)
         self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         
-        self.label = QLabel(f"{label}: {value}ms")
-        self.label.setMinimumWidth(100)
+        self.label = QLabel(f"{label}:")
+        self.label.setMinimumWidth(50)
         
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setRange(min_value, max_value)
         self.slider.setValue(value)
-        self.slider.valueChanged.connect(self._update_label)
         
+        # Add spin box for direct input
+        self.spin_box = QSpinBox()
+        self.spin_box.setRange(min_value, max_value)
+        self.spin_box.setValue(value)
+        self.spin_box.setSuffix(" ms")
+        self.spin_box.setFixedWidth(80)
+        
+        # Connect signals
+        self.slider.valueChanged.connect(self._slider_changed)
+        self.spin_box.valueChanged.connect(self._spinbox_changed)
+        
+        # Add widgets to layout
         self.layout.addWidget(self.label)
-        self.layout.addWidget(self.slider)
+        self.layout.addWidget(self.slider, 1)  # Give slider stretch factor
+        self.layout.addWidget(self.spin_box)
     
     def value(self):
         return self.slider.value()
     
     def setValue(self, value):
-        self.slider.setValue(value)
+        # Prevent signal loops
+        self.slider.blockSignals(True)
+        self.spin_box.blockSignals(True)
         
+        self.slider.setValue(value)
+        self.spin_box.setValue(value)
+        
+        self.slider.blockSignals(False)
+        self.spin_box.blockSignals(False)
+        
+    def _slider_changed(self, value):
+        self.spin_box.blockSignals(True)
+        self.spin_box.setValue(value)
+        self.spin_box.blockSignals(False)
+    
+    def _spinbox_changed(self, value):
+        self.slider.blockSignals(True)
+        self.slider.setValue(value)
+        self.slider.blockSignals(False)
+    
     def _update_label(self):
-        self.label.setText(f"Speed: {self.slider.value()}ms")
+        # This method is kept for backward compatibility
+        pass
 
 
 class ColorDisplay(QFrame):
@@ -184,6 +246,43 @@ class ColorDisplay(QFrame):
             self._effect_step += 1
 
 
+class ToggleButton(QToolButton):
+    """Custom toggle button for control panel visibility."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setCheckable(True)
+        self.setChecked(True)
+        self.setFixedSize(QSize(24, 24))
+        self.setStyleSheet("""
+            QToolButton {
+                border: 1px solid #999;
+                border-radius: 2px;
+                background-color: #f0f0f0;
+            }
+            QToolButton:checked {
+                background-color: #e0e0e0;
+            }
+            QToolButton:hover {
+                background-color: #e5e5e5;
+            }
+        """)
+        self.update_icon()
+        
+    def update_icon(self):
+        """Update the button icon based on checked state."""
+        if self.isChecked():
+            # Show collapse icon (down arrow)
+            self.setText("▼")
+        else:
+            # Show expand icon (up arrow)
+            self.setText("▲")
+        
+    def nextCheckState(self):
+        """Override to handle the check state change."""
+        super().nextCheckState()
+        self.update_icon()
+
+
 class SoftBox(QMainWindow):
     """Main application window for color selection and light effects."""
     
@@ -202,6 +301,31 @@ class SoftBox(QMainWindow):
         # Create the color display area
         self.color_display = ColorDisplay()
         main_layout.addWidget(self.color_display, 1)
+        
+        # Create a container for toggle button and controls
+        toggle_container = QWidget()
+        toggle_layout = QVBoxLayout(toggle_container)
+        toggle_layout.setContentsMargins(0, 0, 0, 0)
+        toggle_layout.setSpacing(0)
+        
+        # Create toggle button container with centering
+        toggle_btn_container = QWidget()
+        toggle_btn_layout = QHBoxLayout(toggle_btn_container)
+        toggle_btn_layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.toggle_button = ToggleButton()
+        self.toggle_button.clicked.connect(self.toggle_controls_visibility)
+        
+        toggle_btn_layout.addStretch(1)
+        toggle_btn_layout.addWidget(self.toggle_button)
+        toggle_btn_layout.addStretch(1)
+        
+        toggle_layout.addWidget(toggle_btn_container)
+        
+        # Create controls container
+        self.controls_container = QWidget()
+        controls_layout = QVBoxLayout(self.controls_container)
+        controls_layout.setContentsMargins(0, 0, 0, 0)
         
         # Create splitter for controls
         self.control_splitter = QSplitter(Qt.Horizontal)
@@ -226,6 +350,9 @@ class SoftBox(QMainWindow):
         self.slider_r.slider.valueChanged.connect(self.update_color)
         self.slider_g.slider.valueChanged.connect(self.update_color)
         self.slider_b.slider.valueChanged.connect(self.update_color)
+        self.slider_r.spin_box.valueChanged.connect(self.update_color)
+        self.slider_g.spin_box.valueChanged.connect(self.update_color)
+        self.slider_b.spin_box.valueChanged.connect(self.update_color)
         
         # Add the widgets to the layout
         rgb_group_layout.addWidget(self.slider_r)
@@ -284,8 +411,6 @@ class SoftBox(QMainWindow):
         presets_layout.addLayout(designer_presets_layout)
         
         rgb_group_layout.addLayout(presets_layout)
-        
-        rgb_group_layout.addLayout(presets_layout)
         rgb_layout.addWidget(rgb_group)
         
         # Right side - Light Effects
@@ -310,6 +435,7 @@ class SoftBox(QMainWindow):
         # Speed control
         self.speed_slider = SpeedSlider("Speed", 50, 1000, 500)
         self.speed_slider.slider.valueChanged.connect(self.update_speed)
+        self.speed_slider.spin_box.valueChanged.connect(self.update_speed)
         
         effects_group_layout.addLayout(effect_selection_layout)
         effects_group_layout.addWidget(self.speed_slider)
@@ -337,15 +463,39 @@ class SoftBox(QMainWindow):
         # Set initial splitter sizes (equal width)
         self.control_splitter.setSizes([1, 1])
         
-        # Add splitter to main layout
-        main_layout.addWidget(self.control_splitter)
+        # Add the splitter to the controls container
+        controls_layout.addWidget(self.control_splitter)
+        
+        # Add controls container to toggle container
+        toggle_layout.addWidget(self.controls_container)
+        
+        # Add toggle container to main layout
+        main_layout.addWidget(toggle_container)
         
         # Set the initial color
         self.update_color()
         
+        # Create animations
+        self.toggle_animation = QPropertyAnimation(self.controls_container, b"maximumHeight")
+        self.toggle_animation.setDuration(300)
+        self.toggle_animation.setEasingCurve(QEasingCurve.InOutCubic)
+        
         # Set a reasonable default size
         self.resize(650, 450)
         
+    def toggle_controls_visibility(self):
+        """Toggle the visibility of control panels with animation."""
+        if self.toggle_button.isChecked():
+            # Show controls
+            self.toggle_animation.setStartValue(0)
+            self.toggle_animation.setEndValue(self.control_splitter.sizeHint().height())
+            self.toggle_animation.start()
+        else:
+            # Hide controls
+            self.toggle_animation.setStartValue(self.control_splitter.height())
+            self.toggle_animation.setEndValue(0)
+            self.toggle_animation.start()
+    
     def update_color(self):
         """Update the UI when the RGB values change."""
         # Update color
@@ -355,11 +505,6 @@ class SoftBox(QMainWindow):
         
         # Update the color
         self.color.setRgb(r, g, b)
-        
-        # Update the labels
-        self.slider_r.update_label()
-        self.slider_g.update_label()
-        self.slider_b.update_label()
         
         # Update the color display
         self.color_display.setColor(self.color)
